@@ -36,9 +36,15 @@ class SocialSignOn extends CSSO {
     protected $mailer;
 
     function __construct($configs = null) {
-        foreach ($configs as $config) {
+        foreach ($configs as $config => $value) {
             if ($config == 'email') {
-                $this->email = true;
+                $this->email = $value;
+            }
+            if ($config == 'view') {
+                $this->view = $value;
+            }
+            if ($config == 'last') {
+                $this->last = $value;
             }
         }
     }
@@ -57,7 +63,7 @@ class SocialSignOn extends CSSO {
     public function getUser(&$uidObject) {
         # check if the current class is elected as user identifier object and return the user_id set by this class
         if ($this->read_class_name(get_called_class()) == $uidObject) {
-            $this->user = $this->sso_session_get('sso_users');
+            $this->user = $this->sso_session_get(CSSO::$SSO_USERS_KEY);
             return $this->user;
         } else {
             return $this->next->getUser($uidObject);
@@ -115,7 +121,7 @@ class SocialSignOn extends CSSO {
                     }
 
                     $this->user = $sso_users;
-                    $this->sso_session_put('sso_users', $sso_users);
+                    $this->sso_session_put(CSSO::$SSO_USERS_KEY, $sso_users);
                     $this->sso_session_put('provider', $provider);
                     $this->stepDone = true;
                     DB::commit();
@@ -168,8 +174,9 @@ class SocialSignOn extends CSSO {
                 $sso_user_id = DB::table('sso_users_map')->select('sso_user_id')->where(['app_user_id' => $app_user->$id])->first();
                 $sso_user = SsoUser::find($sso_user_id->sso_user_id);
                 if (isset($sso_user)) {
-                    $this->sso_session_put('sso_users', $sso_user);
+                    $this->sso_session_put(CSSO::$SSO_USERS_KEY, $sso_user);
                     $this->sso_session_put('provider', 'email');
+                    $params['redirect'] = true;
                     return true;
                 }
                 throw new SSOException('unable to find sso_user related to current user id', 102);
@@ -219,6 +226,7 @@ class SocialSignOn extends CSSO {
         $email_token = $this->create_sso_email_token($params);
         $this->send_verification_email($email_token);
         $params['view'] = 'sso.verify';
+        $params['message'] = 'A verification email has been sent to your accoutn please verify your email to continue registration process';
         return false;
     }
 
@@ -249,7 +257,7 @@ class SocialSignOn extends CSSO {
             throw new SSOException('Unable to create user account', 501);
         }
 
-        $this->sso_session_put('sso_users', $sso_users);
+        $this->sso_session_put(CSSO::$SSO_USERS_KEY, $sso_users);
         $this->sso_session_put('provider', 'email');
         $this->stepDone = true;
         return true;
@@ -297,15 +305,12 @@ class SocialSignOn extends CSSO {
     function getCurrentStep() {
         $provider = $this->sso_session_get('provider');
         $this->stepDone = !is_null($provider);
-//        $mapping = config('sso.config.user_table_map');
-//        $this->stepDone = DB::table($mapping['table'])->whereNotNull($mapping['email']);
-        // if this step is done and there is a next step check with next step
         if (!$this->stepDone) {
             return $this->read_class_name(get_called_class());
         } elseif ($this->stepDone == true && is_object($this->next)) {
             return $this->next->getCurrentStep();
         } else {
-            return true;
+            return $this->view;
         }
     }
 

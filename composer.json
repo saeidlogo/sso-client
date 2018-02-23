@@ -32,7 +32,7 @@
                 "Moontius\\SSOService\\SsoServiceProvider"
             ],
             "aliases": {
-                "DemoFacade": "Moontius\\SSOService\\SsoFacade"
+                "SsoFacade": "Moontius\\SSOService\\SsoFacade"
             }
         }
     },

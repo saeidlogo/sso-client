@@ -10,8 +10,8 @@ namespace Moontius\SSOService;
 
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Request;
-use App\SsoClientsPhoneOtp;
-use App\SsoClientsPhone;
+use Moontius\SSOService\Models\SsoClientsPhoneOtp;
+use Moontius\SSOService\Models\SsoClientsPhone;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -22,12 +22,12 @@ use Illuminate\Support\Facades\DB;
 class VerifiedMobilePhone extends CSSO {
 
     function __construct($configs = null) {
-        foreach ($configs as $config) {
-            if (isset($configs['view'])) {
-                $this->view = $configs['view'];
+        foreach ($configs as $config => $value) {
+            if ($config == 'view') {
+                $this->view = $value;
             }
-            if (isset($configs['redirect'])) {
-                $this->redirect = $configs['redirect'];
+            if ($config == 'last') {
+                $this->last = $value;
             }
         }
     }
@@ -186,6 +186,8 @@ class VerifiedMobilePhone extends CSSO {
             $this->sso_session_put('sso_users', $sso_users);
             $this->stepDone = true;
             DB::commit();
+
+            $params['redirect'] = true;
         } catch (Exception $exc) {
             DB::rollBack();
             throw new SSOException($exc->getMessage(), 501);
@@ -198,24 +200,29 @@ class VerifiedMobilePhone extends CSSO {
         if (!is_null($sso_users)) {
             if (isset($sso_users->phone) && !empty($sso_users->phone)) {
                 $this->stepDone = true;
+                if ($this->last) {
+                    $params['redirect'] = true;
+                }
             }
         }
 
-        if ($this->redirect) {
-            $params['redirect'] = true;
-        }
+
 
         if (!$this->stepDone) {
-            $is_mobile = $this->sso_session_get('mobile');
-            if (isset($is_mobile)) {
-                $method = isset($params['method']) ? $params['method'] : 'GET';
-                if ($method == 'GET') {
-                    $state = 'verify_form';
-                } else {
-                    $state = 'verify_submit';
-                }
+            if (isset($params['verify_state'])) {
+                $state = $params['verify_state'];
             } else {
-                $state = isset($params['verify_state']) ? $params['verify_state'] : 'mobile_form';
+                $is_mobile = $this->sso_session_get('mobile');
+                if (isset($is_mobile)) {
+                    $method = isset($params['method']) ? $params['method'] : 'GET';
+                    if ($method == 'GET') {
+                        $state = 'verify_form';
+                    } else {
+                        $state = 'verify_submit';
+                    }
+                } else {
+                    $state = isset($params['verify_state']) ? $params['verify_state'] : 'mobile_form';
+                }
             }
 
             switch ($state) {
@@ -254,20 +261,20 @@ class VerifiedMobilePhone extends CSSO {
     }
 
     function getCurrentStep() {
-        $ssoUser = $this->sso_session_get('sso_users');
+        $ssoUser = $this->sso_session_get(CSSO::$SSO_USERS_KEY);
         if (!is_null($ssoUser)) {
             if (isset($ssoUser->phone) && !empty($ssoUser->phone)) {
                 $this->stepDone = true;
             }
         }
-//        $mapping = config('sso.config.user_table_map');
-//        $this->stepDone = DB::table($mapping['table'])->whereNotNull($mapping['email']);
-        // if this step is done and there is a next step check with next step
         if (!$this->stepDone) {
             return $this->read_class_name(get_called_class());
         } elseif ($this->stepDone == true && is_object($this->next)) {
             return $this->next->getCurrentStep();
         } else {
+            if (isset($this->last)) {
+                return $this->last;
+            }
             return $this->view;
         }
     }
@@ -301,11 +308,15 @@ class VerifiedMobilePhone extends CSSO {
     public function getUser(&$uidObject) {
         # check if the current class is elected as user identifier object and return the user_id set by this class
         if ($this->read_class_name(get_called_class()) == $uidObject) {
-            $this->user = $this->sso_session_get('sso_users');
+            $this->user = $this->sso_session_get(CSSO::$SSO_USERS_KEY);
             return $this->user;
         } elseif (is_object($this->next)) {
             return $this->next->getUser($uidObject);
         } else {
+            if ($this->last) {
+                $this->user = $this->sso_session_get(CSSO::$SSO_USERS_KEY);
+                return $this->user;
+            }
             return $this->user;
         }
     }

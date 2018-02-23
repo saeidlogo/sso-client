@@ -41,7 +41,6 @@ class SsoServiceProvider extends ServiceProvider {
         }
     }
 
-
     /**
      * Define the publishable migrations and resources.
      *
@@ -73,6 +72,28 @@ class SsoServiceProvider extends ServiceProvider {
 
             $this->publishes([
                 __DIR__ . '/migrations/create_sso_user_map_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_sso_user_map_table.php',
+                    ], 'migrations');
+        }
+
+        if (!class_exists('CreateSsoClientsPhoneOtpsTable')) {
+            $timestamp = date('Y_m_d_His', time());
+
+            $this->publishes([
+                __DIR__ . '/migrations/create_sso_clients_phone_otps_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_sso_clients_phone_otps_table.php',
+                    ], 'migrations');
+        }
+        if (!class_exists('CreateSsoClientsPhonesTable')) {
+            $timestamp = date('Y_m_d_His', time());
+
+            $this->publishes([
+                __DIR__ . '/migrations/create_sso_clients_phones_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_sso_clients_phones_table.php',
+                    ], 'migrations');
+        }
+        if (!class_exists('CreateSsoSignInOtpsTable')) {
+            $timestamp = date('Y_m_d_His', time());
+
+            $this->publishes([
+                __DIR__ . '/migrations/create_sso_sign_in_otps_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_sso_sign_in_otps_table.php',
                     ], 'migrations');
         }
     }
