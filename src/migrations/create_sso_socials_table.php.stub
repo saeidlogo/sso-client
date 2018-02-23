@@ -1,0 +1,41 @@
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateSsoUsersTable extends Migration {
+
+	/**
+	 * Run the migrations.
+	 *
+	 * @return void
+	 */
+	public function up() {
+		Schema::create('sso_socials', function (Blueprint $table) {
+			$table->increments('id');
+			$table->bigInteger('sso_user_id')->nullable();
+			$table->text('socialid');
+			$table->text('provider');
+			$table->string('firstName', 30)->nullable();
+			$table->string('lastName', 30)->nullable();
+			$table->string('profileURL', 255)->nullable();
+			$table->string('photoURL', 255)->nullable();
+			$table->string('emailVerified', 30)->nullable();
+			$table->string('displayName', 100)->nullable();
+			$table->date('date_of_birth')->nullable();
+			$table->bigInteger('phone')->nullable();
+			$table->string('description', 150)->nullable();
+		});
+	}
+
+	/**
+	 * Reverse the migrations.
+	 *
+	 * @return void
+	 */
+	public function down() {
+		Schema::dropIfExists('sso_socials');
+	}
+
+}

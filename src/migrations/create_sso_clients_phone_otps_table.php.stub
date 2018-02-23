@@ -1,0 +1,39 @@
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateSsoClientsPhoneOtpsTable extends Migration {
+
+	/**
+	 * Run the migrations.
+	 *
+	 * @return void
+	 */
+	public function up() {
+		Schema::create('sso_clients_phones_otp', function (Blueprint $table) {
+			$table->increments('id');
+			$table->bigInteger('clientid');
+			$table->bigInteger('phone');
+			$table->integer('otp');
+			$table->string('country', 2);
+			$table->bigInteger('network')->nullable()->default(null);
+			$table->string('messageid', 30)->nullable()->default(null);
+			$table->decimal('cost', 10, 5)->nullable()->default(0.0);
+			$table->bigInteger('user_ip_address');
+			$table->tinyInteger('failed_attempt');
+			$table->timestamp('datetime');
+		});
+	}
+
+	/**
+	 * Reverse the migrations.
+	 *
+	 * @return void
+	 */
+	public function down() {
+		Schema::dropIfExists('sso_clients_phones_otp');
+	}
+
+}

@@ -1,0 +1,38 @@
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateSsoSignInOtpsTable extends Migration {
+
+	/**
+	 * Run the migrations.
+	 *
+	 * @return void
+	 */
+	public function up() {
+		Schema::create('sso_signin_otp', function (Blueprint $table) {
+			$table->increments('id');
+			$table->integer('clientid');
+			$table->bigInteger('phone');
+			$table->integer('otp');
+			$table->enum('verified', ['true', 'false']);
+			$table->bigInteger('network')->nullable();
+			$table->string('messageid', 20)->nullable();
+			$table->bigInteger('user_ip_address');
+			$table->decimal('cost', 5, 2)->nullable();
+			$table->timestamp('datetime');
+		});
+	}
+
+	/**
+	 * Reverse the migrations.
+	 *
+	 * @return void
+	 */
+	public function down() {
+		Schema::dropIfExists('sso_signin_otp');
+	}
+
+}

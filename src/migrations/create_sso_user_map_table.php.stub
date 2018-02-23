@@ -1,0 +1,31 @@
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateSsoUserMapTable extends Migration {
+
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up() {
+        Schema::create('sso_user_map', function (Blueprint $table) {
+            $table->bigInteger('sso_user_id');
+            $table->bigInteger('app_user_id');
+            $table->primary(array('sso_user_id', 'app_user_id'));
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down() {
+        Schema::dropIfExists('sso_user_map');
+    }
+
+}

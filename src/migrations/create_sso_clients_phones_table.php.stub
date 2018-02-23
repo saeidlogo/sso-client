@@ -1,0 +1,38 @@
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateSsoClientsPhonesTable extends Migration {
+
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up() {
+        Schema::create('sso_clients_phones', function (Blueprint $table) {
+            $table->increments('id');
+            $table->bigInteger('clientid');
+            $table->bigInteger('phone');
+            $table->bigInteger('user_ip_address');
+            $table->timestamp('datetime');
+        });
+
+        DB::unprepared('CREATE FUNCTION `get_country_code_iso2`(`dialprefix` VARCHAR(100) CHARSET latin1) RETURNS varchar(2) CHARSET latin1 NO SQL
+RETURN (SELECT country_code_iso2 FROM sso_country_codes WHERE left(dialprefix,countryprefix_len)=`countryprefix` AND left(dialprefix,1)=`countryprefix_ch1`)');
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down() {
+        Schema::dropIfExists('sso_clients_phones');
+
+        DB::unprepared('DROP FUNCTION IF EXISTS get_country_code_iso2');
+    }
+
+}
