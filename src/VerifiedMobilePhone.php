@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Request;
 use Moontius\SSOService\Models\SsoClientsPhoneOtp;
 use Moontius\SSOService\Models\SsoClientsPhone;
 use Illuminate\Support\Facades\DB;
-
+use Moontius\LaravelSMS\Exceptions\SMSException;
 /**
  * Description of VerifiedMobilePhone
  *
@@ -41,6 +41,9 @@ class VerifiedMobilePhone extends CSSO {
         $params['countries'] = $countries;
         $params['user_country'] = $user_country;
         $params['show_mobile'] = true;
+        if (isset($params['redirect'])) {
+            $params['route'] = $this->view;
+        }
     }
 
     function process_mobile_submit(&$params) {
@@ -108,8 +111,9 @@ class VerifiedMobilePhone extends CSSO {
             $params['show_verify'] = false;
             $this->sso_session_put('mobile', $mobile);
             return true;
-        } catch (\Moontius\LaravelSMS\SMSException $exc) {
-            throw new SSOException($exc->getMessage(), SSOException::$ERROR_SMS_SEND_EXCEPTION);
+        } catch (SMSException $exc) {
+            report($exc);
+            throw new SSOException('Unable to send sms', SSOException::$ERROR_SMS_SEND_EXCEPTION);
         }
     }
 
@@ -174,19 +178,19 @@ class VerifiedMobilePhone extends CSSO {
             //if uid is equals to current class name then should we do insert new sso user record
             if ($uid == $this->read_class_name(get_called_class())) {
                 $sso_users = $this->add_sso_user_by_phone($mobile);
-                $this->add_app_user($sso_users);
             } else {
                 $sso_users = $this->update_sso_user_phone($sso_users, $mobile);
-                $this->add_app_user($sso_users);
             }
+
+            $app_user_id = $this->add_app_user($sso_users);
 
             //remove mobile key from session
             $this->sso_session_destroy('mobile');
             $this->user = $sso_users;
-            $this->sso_session_put('sso_users', $sso_users);
+            $this->sso_session_put(CSSO::$SSO_USERS_KEY, $sso_users);
+            $this->sso_session_put('user_id', $app_user_id);
             $this->stepDone = true;
             DB::commit();
-
             $params['redirect'] = true;
         } catch (Exception $exc) {
             DB::rollBack();
@@ -195,13 +199,12 @@ class VerifiedMobilePhone extends CSSO {
     }
 
     function validate(&$params) {
-        $sso_users = $this->sso_session_get('sso_users');
+        $sso_users = $this->sso_session_get(CSSO::$SSO_USERS_KEY);
         //check if sso user has a phone then validate current step
         if (!is_null($sso_users)) {
             if (isset($sso_users->phone) && !empty($sso_users->phone)) {
                 $this->stepDone = true;
                 if ($this->last) {
-                    $params['redirect'] = true;
                 }
             }
         }
@@ -243,10 +246,11 @@ class VerifiedMobilePhone extends CSSO {
             }
         }
 
-        if (is_object($this->next))
-            return $this->next->validate($params);
-        else
-            return true;
+        if ($this->stepDone) {
+            if (is_object($this->next))
+                return $this->next->validate($params);
+        } else
+            return $this->stepDone;
     }
 
     public function getViewParams($step) {

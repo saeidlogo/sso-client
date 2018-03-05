@@ -23,6 +23,9 @@ class SignOnController extends Controller {
         try {
             return $this->process($request, $request->all(), $csso);
         } catch (\Exception $exc) {
+            if ($exc instanceof \Moontius\XeroOAuth\Exceptions\XeroException) {
+                return redirect()->route('xero.oauth')->withErrors($exc->getMessage());
+            }
             return abort(404);
         }
     }
@@ -105,7 +108,8 @@ class SignOnController extends Controller {
         try {
             return $this->process($request, $params, $csso);
         } catch (\Exception $exc) {
-            return abort(404);
+            ## should be redirected to correct routing
+            return redirect()->route('sso.start')->withErrors($exc->getMessage());
         }
     }
 
@@ -149,12 +153,79 @@ class SignOnController extends Controller {
     }
 
     public function signon_verify_submit(Request $request, CSSO $csso) {
+        $request->validate([
+            'v_code' => [
+                'required',
+                'regex:/\d{4}/s',
+            ],
+        ]);
         $params = $request->all();
         $params['verify_state'] = 'verify_submit';
         try {
             return $this->process($request, $params, $csso);
         } catch (\Exception $exc) {
             return redirect()->route('sso.verify.form')->withErrors($exc->getMessage());
+        }
+    }
+
+    ## Xero OAuth 
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function xero_oauth(Request $request, CSSO $csso) {
+        $params = $request->all();
+        $params['xero_state'] = 'xero_oauth_form';
+        try {
+            return $this->process($request, $params, $csso);
+        } catch (\Exception $exc) {
+            abort(500);
+        }
+    }
+
+    public function xero_oauth_authenticate(Request $request, CSSO $csso) {
+        $params = $request->all();
+        $params['xero_state'] = 'xero_oauth_request';
+        try {
+            return $this->process($request, $params, $csso);
+        } catch (\Exception $exc) {
+            return redirect()->route('xero.oauth')->withErrors($exc->getMessage());
+        }
+    }
+
+//    public function xero_oauth_logout(OAuthHelper $oauth) {
+//        $oauth->logout();
+//        return redirect('/');
+//    }
+
+    public function xero_oauth_callback(Request $request, CSSO $csso) {
+        $params = $request->all();
+        $params['xero_state'] = 'xero_oauth_callback';
+        try {
+            return $this->process($request, $params, $csso);
+        } catch (\Exception $exc) {
+            return redirect()->route('xero.oauth')->withErrors($exc->getMessage());
+        }
+    }
+
+    ## Xero Accounts Mapping 
+    ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function xero_bank_accounts_selection(Request $request, CSSO $csso) {
+        $params = $request->all();
+        $params['xero_account_state'] = 'xero_accounts_list';
+        try {
+            return $this->process($request, $params, $csso);
+        } catch (\Exception $exc) {
+            return redirect()->route('xero.oauth')->withErrors($exc->getMessage());
+        }
+    }
+
+    public function xero_bank_accounts_submit(Request $request, CSSO $csso) {
+        $params = $request->all();
+        $params['xero_account_state'] = 'xero_accounts_submit';
+        try {
+            return $this->process($request, $params, $csso);
+        } catch (\Exception $exc) {
+            return redirect()->route('xero.oauth')->withErrors($exc->getMessage());
         }
     }
 
@@ -168,13 +239,20 @@ class SignOnController extends Controller {
             $user = $csso->getUser($currentState);
 
             if (isset($params['redirect'])) {
-                return redirect()->route($currentState, ['params' => $params, 'preference' => $preference, 'user' => $user]);
+                if (isset($params['route'])) {
+                    return redirect($params['route']);
+                }
+                return redirect()->route($currentState);
             }
 
             return view(strtolower($currentState), ['params' => $params, 'preference' => $preference, 'user' => $user]);
         }
 
         $currentState = $csso->getCurrentStep();
+        if (isset($params['route'])) {
+            return redirect()->route($params['route']);
+        }
+
         $preference = $csso->getViewParams(array($currentState));
         $message = isset($params['message']) ? $params['message'] : null;
         return view(strtolower($currentState), ['params' => $params, 'preference' => $preference, 'message' => $message]);

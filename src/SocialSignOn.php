@@ -108,7 +108,6 @@ class SocialSignOn extends CSSO {
                         //if uid is equals to current class name then should we do insert new sso user record
                         if ($uid == $this->read_class_name(get_called_class())) {
                             $sso_users = $this->add_sso_user($sso_social);
-                            $this->add_app_user($sso_users, null);
                         } else {
                             $sso_users = $this->update_sso_user($sso_users, $sso_social);
                         }
@@ -120,11 +119,14 @@ class SocialSignOn extends CSSO {
                         $sso_users = SsoUser::where('email', $sso_social->emailVerified)->first();
                     }
 
+                    $app_user_id = $this->add_app_user($sso_users, null);
                     $this->user = $sso_users;
                     $this->sso_session_put(CSSO::$SSO_USERS_KEY, $sso_users);
                     $this->sso_session_put('provider', $provider);
+                    $this->sso_session_put('user_id', $app_user_id);
                     $this->stepDone = true;
                     DB::commit();
+                    $params['redirect'] = true;
                 } catch (\Exception $exc) {
                     $hybridauth->disconnectAllAdapters();
                     DB::rollBack();
@@ -163,11 +165,9 @@ class SocialSignOn extends CSSO {
     public function do_username_auth(&$params): bool {
         // lookup email or username from config
         $mapping = config('sso.config.user_table_map');
-
         if ($this->platform == 'laravel') {
             $username = $params['username'];
             $password = $params['password'];
-            $value = md5('3373918ss');
             $app_user = DB::table($mapping['table'])->where([$mapping['uid'] => $username, 'password' => md5($password)])->first();
             if (isset($app_user)) {
                 $id = $mapping['table_id'];
@@ -211,9 +211,9 @@ class SocialSignOn extends CSSO {
         $email = $params['email'];
 
         //if token already exists for current email address throw ssoexception
-        $token_exists = SsoEmailToken::where(['email' => $email])->exists();
+        $token_exists = SsoEmailToken::where(['email' => $email])->whereRaw('created_at >= NOW() - INTERVAL ? MINUTE', 15)->orderBy('created_at', 'DESC')->exists();
         if ($token_exists) {
-            throw new SSOException("token already sent to your email account please verify your email to continue registration process", 501);
+            throw new SSOException("token already sent to your email account please verify your email to continue registration process, or try again 15 minutes later", 501);
         }
 
         //if emila address already exists  address throw ssoexception
@@ -226,7 +226,7 @@ class SocialSignOn extends CSSO {
         $email_token = $this->create_sso_email_token($params);
         $this->send_verification_email($email_token);
         $params['view'] = 'sso.verify';
-        $params['message'] = 'A verification email has been sent to your accoutn please verify your email to continue registration process';
+        $params['message'] = 'A verification email has been sent to your account please verify your email to continue registration process';
         return false;
     }
 
@@ -264,8 +264,7 @@ class SocialSignOn extends CSSO {
     }
 
     public function validate(&$params = array()) {
-        $provider = $this->sso_session_get('provider');
-        $this->stepDone = !is_null($provider);
+        $this->stepDone = $this->sso_session_has('provider');
         if (!$this->stepDone) {
             $social_mode = isset($params['social_mode']) ? $params['social_mode'] : '';
             if ($this->email == true && $social_mode == 'email') {
@@ -303,8 +302,7 @@ class SocialSignOn extends CSSO {
     }
 
     function getCurrentStep() {
-        $provider = $this->sso_session_get('provider');
-        $this->stepDone = !is_null($provider);
+        $this->stepDone = $this->sso_session_has('provider');
         if (!$this->stepDone) {
             return $this->read_class_name(get_called_class());
         } elseif ($this->stepDone == true && is_object($this->next)) {
@@ -316,8 +314,9 @@ class SocialSignOn extends CSSO {
 
     function send_verification_email($email_token) {
         try {
-            Mail::to($email_token->email)->send(new VerificationMail($email_token->email, $email_token->token));
+            Mail::to($email_token->email)->queue(new VerificationMail($email_token->email, $email_token->token));
         } catch (Exception $exc) {
+            report($exc);
             throw new Exception("unable to send verification email to" . $email_token->email, 105);
         }
     }

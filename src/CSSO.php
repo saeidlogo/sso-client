@@ -20,13 +20,14 @@ use Moontius\SSOService\SSOException;
 class CSSO implements ICSSO {
 
     public static $SSO_USERS_KEY = "sso_users";
+    public static $SSO_XERO_KEY = "xero_oauth";
     public $next = null;
     public $config;
     public $params;
     public $stage;
     public $user;
     public $view;
-    public $redirect;
+    public $last;
     public $stepDone = false;
     public $uidObject = null;
     public $platform = 'laravel'; # 'wordpress', 'eloquent'
@@ -98,6 +99,36 @@ class CSSO implements ICSSO {
         return $ssoUser;
     }
 
+    function get_app_user() {
+        $user_id = $this->sso_session_get('user_id');
+        $mapping = config('sso.config.user_table_map');
+        $user = DB::table($mapping['table'])->find($user_id);
+        return $user;
+    }
+
+    function find_app_user_by_id($user_id) {
+        $mapping = config('sso.config.user_table_map');
+        $user = DB::table($mapping['table'])->find($user_id);
+        return $user;
+    }
+
+    function change_user_password($password) {
+        $mapping = config('sso.config.user_table_map');
+        $field_mapping = $mapping['field_mapping'];
+        $id = $this->sso_session_get('user_id');
+        if ($id > 0) {
+            $id = DB::table($mapping['table'])
+                    ->where($mapping['table_id'], $id)
+                    ->update(array(
+                $field_mapping['password'] => md5($password)));
+            if ($id > 0) {
+                return true;
+            }
+            throw new SSOException('Unable to change user passoword', 501);
+        }
+        throw new SSOException('User not found', 501);
+    }
+
     function add_app_user($sso_user, $password = null) {
 
         $mapping = config('sso.config.user_table_map');
@@ -126,42 +157,55 @@ class CSSO implements ICSSO {
 
         if (!isset($user_id_obj)) {
             // Username was not found in application; we will insert a new row to add new user 
-            $user_id = DB::table($mapping['table'])->insertGetId($fields);
+            $id = DB::table($mapping['table'])->insertGetId($fields);
             //INSERT `sso_user_map`
             DB::table('sso_users_map')
                     ->insertGetId(array(
                         'sso_user_id' => $sso_user->id,
-                        'app_user_id' => $user_id));
+                        'app_user_id' => $id));
         } else {
             // Username has existing record, we will update null values
             // To-do : Add settings to "overwrite new values" or "update null values only" or "none"
             // by default we do "update null values only"
             $id = $user_id_obj->id;
-            $email = DB::table($mapping['table'])->select($field_mapping['email'])->where([$mapping['table_id'] => $id])->first();
-            if ($email == null) {
-                $user_id = DB::table($mapping['table'])
+            $femail = $field_mapping['email'];
+            $email_obj = DB::table($mapping['table'])->select($femail)->where([$mapping['table_id'] => $id])->first();
+            if ($email_obj == null || is_null($email_obj->$femail)) {
+                DB::table($mapping['table'])
                         ->where($mapping['table_id'], $id)
                         ->update(array(
-                    $field_mapping['email'] => $sso_user->email));
+                            $femail => $sso_user->email));
             }
-            $first_name = DB::table($mapping['table'])->select($field_mapping['firstName'])->where([$mapping['table_id'] => $id])->first();
-            if ($first_name == null) {
-                $user_id = DB::table($mapping['table'])
+
+            $ffname = $field_mapping['firstName'];
+            $first_name = DB::table($mapping['table'])->select($ffname)->where([$mapping['table_id'] => $id])->first();
+            if ($first_name == null || is_null($first_name->$ffname)) {
+                DB::table($mapping['table'])
                         ->where($mapping['table_id'], $id)
                         ->update(array(
-                    $field_mapping['firstName'] => $sso_user->first_name));
+                            $ffname => $sso_user->first_name));
             }
-            $last_name = DB::table($mapping['table'])->select($field_mapping['lastName'])->where([$mapping['table_id'] => $id])->first();
-            if ($last_name == null) {
-                $user_id = DB::table($mapping['table'])
+
+            $flname = $field_mapping['lastName'];
+            $last_name = DB::table($mapping['table'])->select($flname)->where([$mapping['table_id'] => $id])->first();
+            if ($last_name == null || is_null($last_name->$flname)) {
+                DB::table($mapping['table'])
                         ->where($mapping['table_id'], $id)
                         ->update(array(
-                    $field_mapping['lastName'] => $sso_user->lats_name));
+                            $flname => $sso_user->lats_name));
+            }
+
+            $fphone = $field_mapping['phone'];
+            $phone = DB::table($mapping['table'])->select($fphone)->where([$mapping['table_id'] => $id])->first();
+            if ($phone == null || is_null($phone->$fphone)) {
+                DB::table($mapping['table'])
+                        ->where($mapping['table_id'], $id)
+                        ->update(array(
+                            $fphone => $sso_user->phone));
             }
         }
 
-
-        return true;
+        return $id;
     }
 
     function setSteps($steps = []) {
@@ -187,6 +231,9 @@ class CSSO implements ICSSO {
                     break;
                 case $this->read_class_name(XeroOAuth::class):
                     $this->setNext(new XeroOAuth($config));
+                    break;
+                case $this->read_class_name(XeroBankMapping::class):
+                    $this->setNext(new XeroBankMapping($config));
                     break;
 
                 default:
@@ -257,6 +304,10 @@ class CSSO implements ICSSO {
     public function getUser(&$params) {
         $this->uidObject = $params;
         return $this->next->getUser($this->uidObject);
+    }
+
+    public function sso_session_has($key) {
+        return isset($_SESSION['SSO'][$key]);
     }
 
     public function sso_session_get($key) {
