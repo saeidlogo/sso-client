@@ -342,4 +342,8 @@ class CSSO implements ICSSO {
         }
     }
 
+    protected function generateToken() {
+        return hash_hmac('sha256', \Illuminate\Support\Str::random(40), config('app.key'));
+    }
+
 }

@@ -14,9 +14,13 @@ return [
     'config' => [
         //Location where to redirect users once they authenticate with a provider
         'callback' => env('SSO_CALLBACK_URL', 'https://localhost/login/callback'),
+        'ws_callback' => env('WS_SSO_CALLBACK_URL', 'https://localhost/login/callback'),
         'uid' => env('SSO_UID_OBJECT', 'SocialSignOn'),
-        'steps' => ['SocialSignOn' => ['email', 'google', 'facebook'],
-            'VerifiedMobilePhone' => ['my', 'mobile', 'view' => 'sso.profile', 'redirect' => true]],
+        'steps' => ['SocialSignOn' => ['email', 'google', 'facebook',
+            'view' => 'sso.start','handler'=>'\Moontius\SSOService\Http\WsSignOnController::social_redirect'],
+            'VerifiedMobilePhone' => ['my', 'mobile', 'view' => 'sso.mobile.form'],
+            'XeroOAuth' => ['view' => 'xero.oauth'],
+            'XeroBankMapping' => ['last' => 'sso.profile', 'view' => 'xero.account.list'], 'last' => 'sso.profile'],
         'user_table_map' => [
             'uid' => 'email',
             'table' => 'app_users',
@@ -26,6 +30,7 @@ return [
                 'username' => null,
                 'firstName' => 'first_name',
                 'lastName' => 'last_name',
+                'password' => 'password',
                 'phone' => 'phone']
         ],
         //Providers specifics

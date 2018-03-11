@@ -1,0 +1,60 @@
+
+
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateXerobanksTable extends Migration {
+
+    /**
+     * Run the migrations.
+     * CREATE TABLE `xero_banks` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `account_id` varchar(255) NOT NULL,
+      `name` varchar(45) NOT NULL,
+      `code` varchar(32) NOT NULL,
+      `status` int(1) DEFAULT '1',
+      `account_number` varchar(45) DEFAULT NULL,
+      `currency` varchar(3) DEFAULT NULL,
+      `user_id` int(11) NOT NULL,
+      `bank_id` int(11) DEFAULT NULL,
+      PRIMARY KEY (`id`)
+      ) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8
+     * @return void
+     */
+    public function up() {
+        Schema::create('xero_banks', function (Blueprint $table) {
+            // ["id","int(11)",null,"NO","PRI",null,"auto_increment","select,insert,update,references",""]
+            $table->increments('id');
+            // ["account_id","varchar(255)","utf8_general_ci","NO","",null,"","select,insert,update,references",""]
+            $table->string('account_id', 255);
+            // ["name","varchar(45)","utf8_general_ci","NO","",null,"","select,insert,update,references",""]
+            $table->string('name', 45);
+            // ["code","varchar(32)","utf8_general_ci","NO","",null,"","select,insert,update,references",""]
+            $table->string('code', 32);
+            // ["status","int(1)",null,"YES","","1","","select,insert,update,references",""]
+            $table->integer('status')->default('1');
+            // ["account_number","varchar(45)","utf8_general_ci","YES","",null,"","select,insert,update,references",""]
+            $table->string('account_number', 45);
+            // ["currency","varchar(3)","utf8_general_ci","YES","",null,"","select,insert,update,references",""]
+            $table->string('currency', 3);
+            // ["user_id","int(11)",null,"NO","",null,"","select,insert,update,references",""]
+            $table->integer('user_id');
+            // ["bank_id","int(11)",null,"YES","",null,"","select,insert,update,references",""]
+            $table->integer('bank_id');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down() {
+        Schema::dropIfExists('xero_banks');
+    }
+
+}

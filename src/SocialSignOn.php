@@ -16,6 +16,7 @@ use Moontius\SSOService\Models\SsoUser;
 use Illuminate\Support\Facades\Mail;
 use Moontius\SSOService\Models\SsoEmailToken;
 use Moontius\SSOService\Mail\VerificationMail;
+use Hybridauth\HttpClient;
 
 /**
  * Description of SocialSignOn
@@ -27,6 +28,7 @@ class SocialSignOn extends CSSO {
     public $email = false;
     public $user = null;
     public $stepDone = false;
+    public $handler;
 
     /**
      * Mailer instance.
@@ -45,6 +47,9 @@ class SocialSignOn extends CSSO {
             }
             if ($config == 'last') {
                 $this->last = $value;
+            }
+            if ($config == 'handler') {
+                $this->handler = $value;
             }
         }
     }
@@ -77,10 +82,16 @@ class SocialSignOn extends CSSO {
         $array = $hybridauth->getConnectedProviders();
         //if user already sign on with sso then return true and exist proceding validation chains
         if (!empty($array)) {
+            $this->sso_session_put('provider', $provider);
             return true;
         }
         //authenticate user for current provider
-        $adapter = $hybridauth->authenticate($provider);
+        if (isset($this->handler)) {
+            HttpClient\Util::setRedirectHandler($this->handler);
+            $adapter = $hybridauth->authenticate($provider);
+            return false;
+        }
+
         return $adapter->isConnected();
     }
 
@@ -88,7 +99,7 @@ class SocialSignOn extends CSSO {
         if (!$this->stepDone) {
             $provider = $params['provider'];
             $hybridauth = App::make('Hybridauth', $params);
-            $adapter = $hybridauth->authenticate($provider);
+            $adapter = $hybridauth->authenticate(ucfirst($provider));
             $isConnected = $hybridauth->isConnectedWith($provider);
             if ($isConnected) {
                 $userProfile = $adapter->getUserProfile();
@@ -192,10 +203,6 @@ class SocialSignOn extends CSSO {
             return true;
         }
         throw new SSOException("Email is not verified yet", 502);
-    }
-
-    protected function generateToken() {
-        return hash_hmac('sha256', \Illuminate\Support\Str::random(40), config('app.key'));
     }
 
     function create_sso_email_token($params): SsoEmailToken {

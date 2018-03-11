@@ -14,6 +14,7 @@ use Moontius\SSOService\Models\SsoClientsPhoneOtp;
 use Moontius\SSOService\Models\SsoClientsPhone;
 use Illuminate\Support\Facades\DB;
 use Moontius\LaravelSMS\Exceptions\SMSException;
+
 /**
  * Description of VerifiedMobilePhone
  *
@@ -44,6 +45,7 @@ class VerifiedMobilePhone extends CSSO {
         if (isset($params['redirect'])) {
             $params['route'] = $this->view;
         }
+        $params['url'] = '/ws/sso/mobile';
     }
 
     function process_mobile_submit(&$params) {
@@ -205,6 +207,7 @@ class VerifiedMobilePhone extends CSSO {
             if (isset($sso_users->phone) && !empty($sso_users->phone)) {
                 $this->stepDone = true;
                 if ($this->last) {
+                    
                 }
             }
         }

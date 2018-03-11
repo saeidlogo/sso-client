@@ -96,6 +96,75 @@ class SsoServiceProvider extends ServiceProvider {
                 __DIR__ . '/migrations/create_sso_sign_in_otps_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_sso_sign_in_otps_table.php',
                     ], 'migrations');
         }
+
+        if (!class_exists('CreateXerobanksTable')) {
+            $timestamp = date('Y_m_d_His', time());
+
+            $this->publishes([
+                __DIR__ . '/migrations/create_xero_banks_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_xero_banks_table.php',
+                    ], 'migrations');
+        }
+
+        if (!class_exists('CreateUsertobanksTable')) {
+            $timestamp = date('Y_m_d_His', time());
+
+            $this->publishes([
+                __DIR__ . '/migrations/create_user_to_banks_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_user_to_banks_table.php',
+                    ], 'migrations');
+        }
+
+        //create_sso_sessions_table.php.stub
+        if (!class_exists('CreateSsosessionsTable')) {
+            $timestamp = date('Y_m_d_His', time());
+
+            $this->publishes([
+                __DIR__ . '/migrations/create_sso_sessions_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_sso_sessions_table.php',
+                    ], 'migrations');
+        }
+
+        if (!class_exists('CreateSsoEmailTokenTable')) {
+            $timestamp = date('Y_m_d_His', time());
+
+            $this->publishes([
+                __DIR__ . '/migrations/create_sso_email_token_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_sso_email_token_table.php',
+                    ], 'migrations');
+        }
+
+        if (!class_exists('CreateSsocurrencylistTable')) {
+            $timestamp = date('Y_m_d_His', time());
+
+            $this->publishes([
+                __DIR__ . '/migrations/create_sso_currency_list_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_sso_currency_list_table.php',
+                    ], 'migrations');
+        }
+        if (!class_exists('CreateSsocountrylistTable')) {
+            $timestamp = date('Y_m_d_His', time());
+
+            $this->publishes([
+                __DIR__ . '/migrations/create_sso_country_list_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_sso_country_list_table.php',
+                    ], 'migrations');
+        }
+        if (!class_exists('CreateSsocountrycodesTable')) {
+            $timestamp = date('Y_m_d_His', time());
+
+            $this->publishes([
+                __DIR__ . '/migrations/create_sso_country_codes_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_sso_country_codes_table.php',
+                    ], 'migrations');
+        }
+        if (!class_exists('CreateBanktocountryTable')) {
+            $timestamp = date('Y_m_d_His', time());
+
+            $this->publishes([
+                __DIR__ . '/migrations/create_bank_to_country_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_bank_to_country_table.php',
+                    ], 'migrations');
+        }
+        if (!class_exists('CreateBanksTable')) {
+            $timestamp = date('Y_m_d_His', time());
+
+            $this->publishes([
+                __DIR__ . '/migrations/create_banks_table.php.stub' => $this->app->databasePath() . '/migrations/' . $timestamp . '_create_banks_table.php',
+                    ], 'migrations');
+        }
     }
 
 }

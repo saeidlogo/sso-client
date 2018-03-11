@@ -1,0 +1,51 @@
+
+
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateSsocurrencylistTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *CREATE TABLE `sso_currency_list` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `code` char(3) COLLATE utf8_bin NOT NULL DEFAULT '',
+  `name` varchar(30) COLLATE utf8_bin NOT NULL DEFAULT '',
+  `symbol` varchar(20) COLLATE utf8_bin NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `cons_cc_currencies_currency` (`code`),
+  KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('sso_currency_list', function (Blueprint $table) {
+        // ["id","smallint(5) unsigned",null,"NO","PRI",null,"auto_increment","select,insert,update,references",""]
+            $table->increments('id', 5);
+        // ["code","char(3)","utf8_bin","NO","UNI","","","select,insert,update,references",""]
+            $table->char('code', 3)->default('');
+        // ["name","varchar(30)","utf8_bin","NO","MUL","","","select,insert,update,references",""]
+            $table->string('name', 30)->default('');
+        // ["symbol","varchar(20)","utf8_bin","NO","",null,"","select,insert,update,references",""]
+            $table->string('symbol', 20);
+            $table->timestamps();
+            $table->unique(["code"]);
+            $table->index(["name"]);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('sso_currency_list');
+    }
+}
+

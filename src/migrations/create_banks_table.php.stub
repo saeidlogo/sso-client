@@ -1,0 +1,56 @@
+
+
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateBanksTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *CREATE TABLE `banks` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(45) NOT NULL,
+  `sort_order` int(11) DEFAULT '0',
+  `url` varchar(255) DEFAULT NULL,
+  `enabled` int(1) DEFAULT '0',
+  `uuid` varchar(255) NOT NULL,
+  `currency` varchar(3) NOT NULL DEFAULT 'EUR',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('banks', function (Blueprint $table) {
+        // ["id","int(11)",null,"NO","PRI",null,"auto_increment","select,insert,update,references",""]
+            $table->increments('id');
+        // ["name","varchar(45)","utf8_general_ci","NO","",null,"","select,insert,update,references",""]
+            $table->string('name', 45);
+        // ["sort_order","int(11)",null,"YES","","0","","select,insert,update,references",""]
+            $table->integer('sort_order')->default('0');
+        // ["url","varchar(255)","utf8_general_ci","YES","",null,"","select,insert,update,references",""]
+            $table->string('url', 255);
+        // ["enabled","int(1)",null,"YES","","0","","select,insert,update,references",""]
+            $table->integer('enabled')->default('0');
+        // ["uuid","varchar(255)","utf8_general_ci","NO","",null,"","select,insert,update,references",""]
+            $table->string('uuid', 255);
+        // ["currency","varchar(3)","utf8_general_ci","NO","","EUR","","select,insert,update,references",""]
+            $table->string('currency', 3)->default('EUR');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('banks');
+    }
+}
+

@@ -13,8 +13,10 @@
     "require": {
         "php": "^7.0",
         "hybridauth/hybridauth": "~3.0",
+        "askedio/laravel-ratchet": "^1.2",
+        "illuminate/Routing": "~5.5",
         "illuminate/support": "~5.5",
-        "illuminate/Routing": "~5.5"
+        "moontius/xero-oauth": "~1.1"
     },
     "require-dev": {
         "mockery/mockery": "~1.0",
@@ -29,7 +31,8 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Moontius\\SSOService\\SsoServiceProvider"
+                "Moontius\\SSOService\\SsoServiceProvider",
+                "Moontius\\SSOService\\HybridAuthProvider"
             ],
             "aliases": {
                 "SsoFacade": "Moontius\\SSOService\\SsoFacade"

@@ -1,0 +1,91 @@
+
+
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateSsocountrylistTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *CREATE TABLE `sso_country_list` (
+  `id` mediumint(10) NOT NULL AUTO_INCREMENT,
+  `countrycode` char(80) COLLATE utf8_bin NOT NULL,
+  `country_code_iso2` varchar(2) COLLATE utf8_bin NOT NULL,
+  `countryname` char(80) COLLATE utf8_bin NOT NULL,
+  `countryname_prefix` varchar(40) COLLATE utf8_bin DEFAULT NULL,
+  `countryname_postfix` varchar(40) COLLATE utf8_bin DEFAULT NULL,
+  `countryname_allcaps` varchar(100) COLLATE utf8_bin NOT NULL,
+  `countryname_ch1` varchar(1) COLLATE utf8_bin NOT NULL,
+  `countryprefix` char(80) COLLATE utf8_bin NOT NULL,
+  `countryprefix_len` smallint(1) NOT NULL,
+  `countryprefix_ch1` tinyint(4) DEFAULT '0',
+  `currency` varchar(4) COLLATE utf8_bin NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `countrycode` (`countrycode`),
+  KEY `countryprefix` (`countryprefix`),
+  KEY `countryname` (`countryname`),
+  KEY `country_code_iso2` (`country_code_iso2`),
+  KEY `currency` (`currency`),
+  KEY `countrycode_len` (`countryprefix_len`),
+  KEY `countryname_prefix` (`countryname_prefix`),
+  KEY `countryprefix_ch1` (`countryprefix_ch1`),
+  KEY `countryname_allcaps` (`countryname_allcaps`),
+  KEY `countryname_ch1` (`countryname_ch1`)
+) ENGINE=InnoDB AUTO_INCREMENT=261 DEFAULT CHARSET=utf8 COLLATE=utf8_bin
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('sso_country_list', function (Blueprint $table) {
+        // ["id","mediumint(10)",null,"NO","PRI",null,"auto_increment","select,insert,update,references",""]
+            $table->increments('id', 10);
+        // ["countrycode","char(80)","utf8_bin","NO","MUL",null,"","select,insert,update,references",""]
+            $table->char('countrycode', 80);
+        // ["country_code_iso2","varchar(2)","utf8_bin","NO","MUL",null,"","select,insert,update,references",""]
+            $table->string('country_code_iso2', 2);
+        // ["countryname","char(80)","utf8_bin","NO","MUL",null,"","select,insert,update,references",""]
+            $table->char('countryname', 80);
+        // ["countryname_prefix","varchar(40)","utf8_bin","YES","MUL",null,"","select,insert,update,references",""]
+            $table->string('countryname_prefix', 40);
+        // ["countryname_postfix","varchar(40)","utf8_bin","YES","",null,"","select,insert,update,references",""]
+            $table->string('countryname_postfix', 40);
+        // ["countryname_allcaps","varchar(100)","utf8_bin","NO","MUL",null,"","select,insert,update,references",""]
+            $table->string('countryname_allcaps', 100);
+        // ["countryname_ch1","varchar(1)","utf8_bin","NO","MUL",null,"","select,insert,update,references",""]
+            $table->string('countryname_ch1', 1);
+        // ["countryprefix","char(80)","utf8_bin","NO","MUL",null,"","select,insert,update,references",""]
+            $table->char('countryprefix', 80);
+        // ["countryprefix_len","smallint(1)",null,"NO","MUL",null,"","select,insert,update,references",""]
+            $table->smallint('countryprefix_len', 1);
+        // ["countryprefix_ch1","tinyint(4)",null,"YES","MUL","0","","select,insert,update,references",""]
+            $table->tinyInteger('countryprefix_ch1')->default('0');
+        // ["currency","varchar(4)","utf8_bin","NO","MUL",null,"","select,insert,update,references",""]
+            $table->string('currency', 4);
+            $table->timestamps();
+            $table->index(["countrycode"]);
+            $table->index(["countryprefix"]);
+            $table->index(["countryname"]);
+            $table->index(["country_code_iso2"]);
+            $table->index(["currency"]);
+            $table->index(["countryprefix_len"]);
+            $table->index(["countryname_prefix"]);
+            $table->index(["countryprefix_ch1"]);
+            $table->index(["countryname_allcaps"]);
+            $table->index(["countryname_ch1"]);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('sso_country_list');
+    }
+}
+

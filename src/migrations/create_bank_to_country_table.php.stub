@@ -1,0 +1,41 @@
+
+
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateBanktocountryTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *CREATE TABLE `bank_to_country` (
+  `banks_id` int(11) NOT NULL,
+  `country_id` int(11) NOT NULL,
+  PRIMARY KEY (`banks_id`,`country_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('bank_to_country', function (Blueprint $table) {
+        // ["banks_id","int(11)",null,"NO","PRI",null,"","select,insert,update,references",""]
+            $table->integer('banks_id');
+        // ["country_id","int(11)",null,"NO","PRI",null,"","select,insert,update,references",""]
+            $table->integer('country_id');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('bank_to_country');
+    }
+}
+
