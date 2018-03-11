@@ -134,7 +134,7 @@ class WsSignOnController extends Controller {
             }
 
             $data = ['params' => $params];
-            return response()->json($data, 200, [], JSON_UNESCAPED_UNICODE);
+            return response()->json($data, 200, [], JSON_UNESCAPED_SLASHES);
         } catch (\Exception $exc) {
             return response()->json([
                         'code' => $exc->getCode(),
@@ -156,9 +156,8 @@ class WsSignOnController extends Controller {
             if (isset($next)) {
                 $params['next'] = $next;
             }
-            return response()->json([
-                        'params' => $params
-            ]);
+            $data = ['params' => $params];
+            return response()->json($data, 200, [], JSON_UNESCAPED_SLASHES);
         } catch (\Exception $exc) {
             ## should be redirected to correct routing
             return response()->json([
@@ -180,9 +179,8 @@ class WsSignOnController extends Controller {
                 return $this->do_after_validate($csso);
             }
 
-            return response()->json([
-                        'params' => $params
-            ]);
+            $data = ['params' => $params];
+            return response()->json($data, 200, [], JSON_UNESCAPED_SLASHES);
         } catch (\Exception $exc) {
             return response()->json([
                         'code' => $exc->getCode(),
@@ -200,9 +198,8 @@ class WsSignOnController extends Controller {
                 return $this->do_after_validate($csso);
             }
 
-            return response()->json([
-                        'params' => $params
-            ]);
+            $data = ['params' => $params];
+            return response()->json($data, 200, [], JSON_UNESCAPED_SLASHES);
         } catch (\Exception $exc) {
             return response()->json([
                         'code' => $exc->getCode(),
@@ -219,9 +216,8 @@ class WsSignOnController extends Controller {
                 return $this->do_after_validate($csso);
             }
 
-            return response()->json([
-                        'params' => $params
-            ]);
+            $data = ['params' => $params];
+            return response()->json($data, 200, [], JSON_UNESCAPED_SLASHES);
         } catch (\Exception $exc) {
             return response()->json([
                         'code' => $exc->getCode(),
@@ -244,9 +240,8 @@ class WsSignOnController extends Controller {
                 return $this->do_after_validate($csso);
             }
 
-            return response()->json([
-                        'params' => $params
-            ]);
+            $data = ['params' => $params];
+            return response()->json($data, 200, [], JSON_UNESCAPED_SLASHES);
         } catch (\Exception $exc) {
             return response()->json([
                         'code' => $exc->getCode(),

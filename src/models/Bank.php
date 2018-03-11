@@ -1,6 +1,6 @@
 <?php
 
-namespace Moonitus\SSOService\Models;
+namespace Moontius\SSOService\Models;
 
 use Illuminate\Database\Eloquent\Model;
 

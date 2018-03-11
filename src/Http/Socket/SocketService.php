@@ -11,7 +11,7 @@ namespace Moontius\SSOService\Http\Socket;
 use Ratchet\ConnectionInterface;
 use Illuminate\Support\Facades\App;
 use Moontius\SSOService\CSSO;
-use App\SsoSession;
+use Moontius\SSOService\Models\SsoSession;
 
 //use Moontius\SSOService\SsoFacade;
 //export PHP_IDE_CONFIG="serverName=netbeans-xdebug"
@@ -41,9 +41,9 @@ class SocketService extends \Askedio\LaravelRatchet\RatchetWsServer {
 
         switch ($request) {
             case 'sessionToken':
-                $locale = $reqparams['locale'];
-                $device_info = $reqparams['deviceInfo'];
-                $sso_session = $this->create_sso_session();
+                $locale = isset($reqparams['locale']) ? $reqparams['locale'] : 'NL';
+                $device_info = isset($reqparams['deviceInfo']) ? $reqparams['deviceInfo'] : '';
+                $sso_session = $this->create_sso_session(null);
                 $token = $sso_session->sesskey;
                 $this->sess[$token] = $conn->resourceId;
                 $result = '{"signUpSessionId":"' . $token . '","otpTimeOut": 90}';
